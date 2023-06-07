@@ -1,6 +1,7 @@
 package fr.yncrea.cin3.ths.Neurone;
 
 public class NeuroneSigmoide extends Neurone {
+
     public NeuroneSigmoide(int nbEntrees) {
         super(nbEntrees);
     }

@@ -21,31 +21,20 @@ public class main {
     public static void main(String[] args) {
 
         //tableau de string contenant les fichiers audio
-        String[] fichiers = {"Canard_2.wav", "Canard_1.wav","Canard_3.wav", "Chouette_Hulotte_1.wav","Chouette_Effraie.wav"};
+        String[] canardString = {"Canard_2.wav", "Canard_3.wav", "Chouette_Hulotte_1.wav","Chouette_Effraie.wav"};
+        final Neurone canard = apprentissageNeuroneSigmoide(canardString, 2, "Canard");
 
-        final Neurone n = apprentissageNeuroneSigmoide(fichiers, 3  );
+        String[] chouetteString = {"Chouette_Hulotte_1.wav", "Chouette_Hulotte_2.wav", "Coq_1.wav", "BuseAQueue1.wav"};
+        final Neurone chouette = apprentissageNeuroneSigmoide(chouetteString, 2, "Chouette");
 
+        Neurone[] reseauNeuronal = {canard, chouette};
 
-        System.out.println("Test de la fonction de reconnaissance juste");
-        String[] fichierTest = {"Canard_3.wav"};
-        float[][] sonTest = creationEntree(fichierTest);
-        float total = 0;
-        for (float[] floats : sonTest) {
-            n.metAJour(floats);
-            total += (Math.round(n.sortie()) == 1 ? 1 : 0);
-        }
-        System.out.println("Moyenne : " + total / sonTest.length);
-
-        System.out.println("Test de la fonction de reconnaissance fausse");
-        String[] fichierTest2 = {"Coq_1.wav"};
-        float total2 = 0;
-        float[][] sonTest2 = creationEntree(fichierTest2);
-        for (float[] floats : sonTest2) {
-            n.metAJour(floats);
-            total2 += (Math.round(n.sortie()) == 0 ? 1 : 0);
-        }
-        System.out.println("Moyenne : " + total2 / sonTest2.length);
-
+        String[] canardTest = {"Canard_1.wav"};
+        String[] chouetteTest = {"Chouette_Hulotte_1.wav"};
+        fiabiliteNeurone(canard, canardTest, 1);
+        fiabiliteNeurone(canard, chouetteTest, 0);
+        fiabiliteNeurone(chouette, canardTest, 0);
+        fiabiliteNeurone(chouette, chouetteTest, 1);
 
     }
 
@@ -164,7 +153,7 @@ public class main {
         return sortieV;
     }
 
-    public static Neurone apprentissageNeuroneSigmoide(String[] fileNames, int nbreVrai){
+    public static Neurone apprentissageNeuroneSigmoide(String[] fileNames, int nbreVrai, String nomOiseau){
         float[][] entree = creationEntree(fileNames);
         float[] sortie = concatSorties(fileNames, nbreVrai);
 
@@ -186,7 +175,39 @@ public class main {
             n.metAJour(entrees);
             // On affiche cette sortie
         }
+        n.setNom(nomOiseau);
+
         return n;
     }
 
+    public static void fiabiliteNeurone(Neurone n, String[] filename, Integer sortieAttendue) {
+        System.out.println("Test du neurone…");
+        float total2 = 0;
+        float[][] sonTest2 = creationEntree(filename);
+        for (float[] floats : sonTest2) {
+            n.metAJour(floats);
+            total2 += (Math.round(n.sortie()) == sortieAttendue ? 1 : 0);
+        }
+        System.out.println("Moyenne : " + total2 / sonTest2.length);
+    }
+
+    //chercher le nom de l'oiseau dans le reseau neuronal
+    public static void chercherOiseau(Neurone[] reseauNeuronal, String[] filename){
+
+        //tester le son avec chaque neurone et selectionner celui qui a le plus de sortie procche de 1
+float[] sortie = new float[reseauNeuronal.length];
+        for (int i = 0; i < reseauNeuronal.length; ++i) {
+            float total = 0;
+            float[][] sonTest = creationEntree(filename);
+            for (float[] floats : sonTest) {
+                reseauNeuronal[i].metAJour(floats);
+                total += reseauNeuronal[i].sortie();
+            }
+            sortie[i] = total / sonTest.length;
+        }
+        //afficher le total de sortie de chaque neurone
+        for (int i = 0; i < sortie.length; ++i) {
+            System.out.println(reseauNeuronal[i].getNom() + " : " + sortie[i]);
+        }
+    }
 }

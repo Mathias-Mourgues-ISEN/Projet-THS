@@ -18,6 +18,8 @@ public abstract class Neurone implements iNeurone
 	// Biais associé aux poids synaptiques d'un neurone
 	private float biais;
 
+	private String nom;
+
 	// Valeur de sortie d'un neurone (à "Not A Number" par défaut)
 	private float etatInterne = Float.NaN;
 
@@ -62,6 +64,13 @@ public abstract class Neurone implements iNeurone
 
 		// On fixe la sortie du neurone relativement à la fonction d'activation
 		etatInterne = activation(somme);
+	}
+
+	public void setNom(String nom) {
+		this.nom = nom;
+	}
+	public String getNom() {
+		return this.nom;
 	}
 
 	// Fonction d'apprentissage permettant de mettre à jour les valeurs des
