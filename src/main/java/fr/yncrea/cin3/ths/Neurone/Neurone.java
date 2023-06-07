@@ -36,7 +36,7 @@ public abstract class Neurone implements iNeurone
 		for (int i = 0; i < nbEntrees; ++i)
 			synapses[i] = (float)(Math.random()*2.-1.);
 		// On initialise le biais de manière aléatoire
-		//biais = (float)(Math.random()*2.-1.);
+		biais = (float)(Math.random()*2.-1.);
 	}
 
 	// Accesseur pour la valeur de sortie
