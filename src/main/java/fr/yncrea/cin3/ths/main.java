@@ -10,38 +10,16 @@ import fr.yncrea.cin3.ths.son.Son;
 
 import fr.yncrea.cin3.ths.FFT.FFTCplx;
 
+import java.util.Arrays;
+
 public class main {
 
     public static void main(String[] args) {
 
         //tableau de string contenant les fichiers audio
-        String[] fichiers = {"Canard_1.wav", "Chouette_Hulotte_1.wav"};
-        processMultipleFiles(fichiers);
-
-        /*
-        float[][] entree1 = sonTest("Canard_1.wav");
-        float[][] entree2 = sonTest("Chouette_Hulotte_1.wav");
-        float[][] entree = new float[entree1.length + entree2.length][entree1[0].length];
-        //remplir le tableau entree avec les deux tableaux entree1 et entree2
-        for (int i = 0; i < entree1.length; ++i) {
-            for (int j = 0; j < entree1[0].length; ++j) {
-                entree[i][j] = entree1[i][j];
-            }
-        }
-        for (int i = 0; i < entree2.length; ++i) {
-            for (int j = 0; j < entree2[0].length; ++j) {
-                entree[i + entree1.length][j] = entree2[i][j];
-            }
-        }
-
-        float[] sortie = new float[entree1.length + entree2.length];
-        for (int i = 0; i < sortie.length; ++i) {
-            if (i < entree1.length) {
-                sortie[i] = 0;
-            } else {
-                sortie[i] = 1;
-            }
-        }
+        String[] fichiers = {"Canard_2.wav", "Chouette_Hulotte_1.wav"};
+        float[][] entree = creationEntree(fichiers);
+        float[] sortie = creationSortie(fichiers);
 
         final iNeurone n = new NeuroneSigmoide(entree[0].length);
 
@@ -64,7 +42,23 @@ public class main {
             // On affiche cette sortie
             System.out.println("Entree " + i + " : " + n.sortie());
         }
-*/
+
+        System.out.println("Test de la fonction de reconnaissance juste");
+        String[] fichierTest = {"Canard_3.wav"};
+        float[][] sonTest = creationEntree(fichierTest);
+        for (int i = 0; i < sonTest.length; ++i) {
+            n.metAJour(sonTest[i]);
+            System.out.println("Entree " + i + " : " + n.sortie());
+        }
+
+        System.out.println("Test de la fonction de reconnaissance fausse");
+        String[] fichierTest2 = {"Coq_1.wav"};
+        float[][] sonTest2 = creationEntree(fichierTest2);
+        for (int i = 0; i < sonTest2.length; ++i) {
+            n.metAJour(sonTest2[i]);
+            System.out.println("Entree " + i + " : " + n.sortie());
+        }
+
 
     }
 
@@ -97,53 +91,63 @@ public class main {
         return entrees;
     }
 
-    public static float[][] processMultipleFiles(String[] fileNames) {
-        // Initialiser le maximum comme étant la valeur minimale possible pour un float
-        float max = Float.MIN_VALUE;
+    public static float[][] creationEntree(String[] fileNames) {
+
+        float max = 0.0f;
 
 
-        // Initialiser un tableau de taille 0 qui sera étendu plus tard
         float[][] entree = new float[0][0];
 
-
         for (String fileName : fileNames) {
-            float[][] newEntree = sonTest(fileName); // Remplacer "sonTest" par la fonction que vous utilisez pour lire le fichier
-
-
-            int totalLength = entree.length + newEntree.length;
-            int elementLength = newEntree[0].length;
-            float[][] concatenatedEntree = new float[totalLength][elementLength];
-
-
-            // Copier les valeurs existantes
-            for (int i = 0; i < entree.length; i++) {
-                for (int j = 0; j < entree[0].length; j++) {
-                    concatenatedEntree[i][j] = entree[i][j];
-                }
-            }
-
-
-            // Copier les nouvelles valeurs et trouver le maximum
-            for (int i = 0; i < newEntree.length; i++) {
-                for (int j = 0; j < newEntree[0].length; j++) {
-                    concatenatedEntree[i + entree.length][j] = newEntree[i][j];
-                    if (newEntree[i][j] > max) {
-                        max = newEntree[i][j];
-                    }
-                }
-            }
-
-            entree = concatenatedEntree;
-
-            //normaliser entrée entre 0 et 1
+            float[][] entreeTemp = sonTest(fileName);
+            float[][] entreeTemp2 = new float[entree.length + entreeTemp.length][entreeTemp[0].length];
+            //remplir le tableau entree avec les deux tableaux entree1 et entree2
             for (int i = 0; i < entree.length; ++i) {
-                for (int j = 0; j < entree[0].length; ++j) {
-                    entree[i][j] = entree[i][j] / max;
-                    //affciher les valeurs normalisées
-                    System.out.println(entree[i][j]);
+                System.arraycopy(entree[i], 0, entreeTemp2[i], 0, entree[0].length);
+            }
+            for (int i = 0; i < entreeTemp.length; ++i) {
+                System.arraycopy(entreeTemp[i], 0, entreeTemp2[i + entree.length], 0, entreeTemp[0].length);
+            }
+            entree = entreeTemp2;
+        }
+        for (float[] floats : entree) {
+            for (int j = 0; j < entree[0].length; ++j) {
+                if (floats[j] > max) {
+                    max = floats[j];
                 }
+            }
+        }
+        for (int i = 0; i < entree.length; ++i) {
+            for (int j = 0; j < entree[0].length; ++j) {
+                entree[i][j] = entree[i][j] / max;
             }
         }
         return entree;
     }
+
+    public static float[] creationSortie(String[] fileNames) {
+        float[] sortie = new float[0];
+
+        float[][] entree1 = sonTest(fileNames[0]);
+        float[] sortie1 = new float[entree1.length];
+        Arrays.fill(sortie1, 1);
+
+        //remplir un tableau de sortie avec des 0 pour tous les autres fichiers en prenant la meme methode
+        for (int i = 0; i < fileNames.length; ++i) {
+            if (i == 0) {
+                sortie = sortie1;
+            } else {
+                float[][] entreeTemp = sonTest(fileNames[i]);
+                float[] sortieTemp = new float[entreeTemp.length];
+                Arrays.fill(sortieTemp, 0);
+                float[] sortieTemp2 = new float[sortie.length + sortieTemp.length];
+                System.arraycopy(sortie, 0, sortieTemp2, 0, sortie.length);
+                System.arraycopy(sortieTemp, 0, sortieTemp2, sortie.length, sortieTemp.length);
+                sortie = sortieTemp2;
+            }
+        }
+
+        return sortie;
+    }
+
 }
